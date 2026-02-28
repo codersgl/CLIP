@@ -43,7 +43,7 @@ jobs:
         run: uv run pre-commit run --all-files # 如果 pre-commit 安装在虚拟环境中
 
       - name: Run tests with pytest
-        run: uv run pytest tests/ --cov=clip --cov-report=xml # 运行测试并生成覆盖率报告
+        run: uv run pytest tests/
 
       - name: Upload coverage to Codecov (可选)
         uses: codecov/codecov-action@v4
