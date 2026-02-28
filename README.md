@@ -121,7 +121,7 @@ class ImageTextDataset(Dataset):
 ```python
 from torch.utils.data import DataLoader
 
-dataset = ImageTextDataset(csv_file='train.csv', image_dir='images/', 
+dataset = ImageTextDataset(csv_file='train.csv', image_dir='images/',
                            transform=image_transform, tokenizer=tokenize)
 dataloader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=4)
 ```
@@ -146,17 +146,17 @@ scaler = torch.cuda.amp.GradScaler()  # 混合精度加速
 for epoch in range(num_epochs):
     for batch in dataloader:
         images, input_ids, attention_mask = [x.to(device) for x in batch]
-        
+
         optimizer.zero_grad()
-        
+
         with torch.cuda.amp.autocast():  # 混合精度
             logits_per_image, logits_per_text = model(images, input_ids, attention_mask)
             loss = clip_loss(logits_per_image, logits_per_text)
-        
+
         scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()
-    
+
     scheduler.step()
     print(f"Epoch {epoch}: loss = {loss.item():.4f}")
 ```
@@ -174,25 +174,25 @@ def zero_shot_eval(model, dataloader, class_names, template="a photo of a {}"):
     # 将类别名称转换为文本提示
     texts = [template.format(c) for c in class_names]
     tokenized = tokenizer(texts, padding=True, truncation=True, return_tensors="pt").to(device)
-    
+
     model.eval()
     with torch.no_grad():
         # 预计算文本特征
         text_features = model.text_encoder(tokenized['input_ids'], tokenized['attention_mask'])
         text_features = F.normalize(text_features, dim=-1)
-        
+
         total, correct = 0, 0
         for images, labels in dataloader:
             images = images.to(device)
             image_features = model.image_encoder(images)
             image_features = F.normalize(image_features, dim=-1)
-            
+
             # 计算相似度
             similarity = image_features @ text_features.T
             preds = similarity.argmax(dim=-1)
             correct += (preds == labels.to(device)).sum().item()
             total += labels.size(0)
-    
+
     return correct / total
 ```
 
