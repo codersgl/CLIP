@@ -1,11 +1,11 @@
 name: CI  # The name of workflow
 
-# 触发条件：当 push 到 main 分支 或 发起 pull request 到 main 时运行
+# 触发条件：当 push 到 master 分支 或 发起 pull request 到 master 时运行
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   test:
