@@ -1,37 +1,49 @@
-name: CI  # The name of workflow
+name: CI # The name of workflow
 
 # 触发条件：当 push 到 master 分支 或 发起 pull request 到 master 时运行
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   test:
-    runs-on: ubuntu-latest  # 运行在最新版 Ubuntu 上
+    runs-on: ubuntu-latest # 运行在最新版 Ubuntu 上
 
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]  # 测试多个 Python 版本
+        python-version: ["3.9", "3.10", "3.11"] # 测试多个 Python 版本
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # 将代码拉取到运行环境中
+        uses: actions/checkout@v4 # 将代码拉取到运行环境中
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3  # 安装 uv 包管理器
+        uses: astral-sh/setup-uv@v3 # 安装 uv 包管理器
         with:
           version: "latest"
 
       - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}  # 安装指定 Python 版本
+        run: uv python install ${{ matrix.python-version }} # 安装指定 Python 版本
 
       - name: Install dependencies
-        run: uv sync  # 根据 pyproject.toml 或 requirements.txt 安装依赖
+        run: uv sync # 根据 pyproject.toml 或 requirements.txt 安装依赖
+
+      - name: Install project in editable mode
+        run: uv pip install -e .
+
+      - name: Cache pre-commit
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run pre-commit
+        run: uv run pre-commit run --all-files # 如果 pre-commit 安装在虚拟环境中
 
       - name: Run tests with pytest
-        run: uv run pytest tests/ --cov=clip --cov-report=xml  # 运行测试并生成覆盖率报告
+        run: uv run pytest tests/ --cov=clip --cov-report=xml # 运行测试并生成覆盖率报告
 
       - name: Upload coverage to Codecov (可选)
         uses: codecov/codecov-action@v4
