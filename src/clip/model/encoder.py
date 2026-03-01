@@ -94,6 +94,7 @@ class TextEncoder(Encoder):
         embed_dim: int,
         model_name: str = "distilbert-base-uncased",
         pooler: str = "cls",  # Options: "cls" or "mean"
+        **kwargs,
     ):
         super().__init__(embed_dim)
 

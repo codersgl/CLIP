@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from clip.model import TextEncoder, VisualEncoder
+from .encoder import TextEncoder, VisualEncoder
 
 
 class CLIP(nn.Module):
