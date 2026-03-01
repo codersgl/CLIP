@@ -1,0 +1,9 @@
+img_dir: "data/Images"
+ann_file: "data/captions.txt"
+train_ratio: 0.8
+seed: ${training.seed}
+max_len: 77
+tokenizer_model_name: "distilbert-base-uncased"
+batch_size: 16
+num_workers: 2
+pin_memory: True

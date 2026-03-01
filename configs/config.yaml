@@ -1,0 +1,19 @@
+defaults:
+  - model: clip
+  - data: Flickr8k
+  - optimizer: adamw
+  - _self_
+
+training:
+  epochs: 20
+  seed: 42
+  log_dir: "tensorboard"
+  save_path: "best.pt"
+  patience: 5
+  use_early_stop: True
+  grad_clip_max_norm: 1.0
+
+
+hydra:
+  job:
+    chdir: True
