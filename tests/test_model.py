@@ -1,7 +1,8 @@
 import pytest
 import torch
-from clip.model import TextEncoder, VisualEncoder, CLIP
+
 from clip.data import get_text_tokenizer
+from clip.model import CLIP, TextEncoder, VisualEncoder
 
 
 @pytest.fixture
