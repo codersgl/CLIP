@@ -54,6 +54,7 @@ class Flickr8kDataset(Dataset):
         transform: Optional[Compose] = None,
         tokenizer: Optional[PreTrainedTokenizerBase] = None,
         max_len: int = 77,
+        image_ids=None,
     ):
         """
         img_dir: The path of image dictionary.
@@ -74,14 +75,17 @@ class Flickr8kDataset(Dataset):
         # Data structure：{ Image name: [ann1, ann2, ...] }
         self.caption_dict: dict = {}
         for line in lines[1:]:
-            image_name, caption = line.strip().split(",")
+            image_name, caption = line.strip().split(",", maxsplit=1)
 
             if image_name not in self.caption_dict:
                 self.caption_dict[image_name] = []
             self.caption_dict[image_name].append(caption)
 
         # Save all image name
-        self.image_ids = list(self.caption_dict.keys())
+        if image_ids is None:
+            self.image_ids = list(self.caption_dict.keys())
+        else:
+            self.image_ids = image_ids
 
     def __len__(self):
         return len(self.image_ids)
@@ -106,3 +110,54 @@ class Flickr8kDataset(Dataset):
         tokenized = {k: v.squeeze(0) for k, v in tokenized.items()}
 
         return image, tokenized
+
+    @classmethod
+    def split_train_val(
+        cls,
+        img_dir,
+        ann_file,
+        tokenizer,
+        train_transform,
+        val_transform,
+        train_ratio=0.8,
+        seed=42,
+        max_len=77,
+        **kwargs,
+    ):
+        with open(ann_file, "r") as f:
+            lines = f.readlines()
+        caption_dict = {}
+        for line in lines[1:]:
+            image_name, caption = line.strip().split(",", maxsplit=1)
+            if image_name not in caption_dict:
+                caption_dict[image_name] = []
+            caption_dict[image_name].append(caption)
+        all_ids = list(caption_dict.keys())
+
+        torch.manual_seed(seed)
+        indices = list(range(len(all_ids)))
+        shuffled_indices = torch.randperm(len(indices)).tolist()
+        train_size = int(train_ratio * len(indices))
+        train_indices = shuffled_indices[:train_size]
+        val_indices = shuffled_indices[train_size:]
+
+        train_ids = [all_ids[i] for i in train_indices]
+        val_ids = [all_ids[i] for i in val_indices]
+
+        train_dataset = cls(
+            img_dir=img_dir,
+            ann_file=ann_file,
+            transform=train_transform,
+            tokenizer=tokenizer,
+            max_len=max_len,
+            image_ids=train_ids,
+        )
+        val_dataset = cls(
+            img_dir=img_dir,
+            ann_file=ann_file,
+            transform=val_transform,
+            tokenizer=tokenizer,
+            max_len=max_len,
+            image_ids=val_ids,
+        )
+        return train_dataset, val_dataset
