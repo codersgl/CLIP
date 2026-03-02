@@ -98,7 +98,33 @@ tensorboard --logdir outputs
 uv run pytest -q
 ```
 
-## 8. Current Default Config
+## 8. Inference (Retrieval)
+
+Inference supports both directions:
+
+- `text2image`: retrieve images for each text query
+- `image2text`: retrieve texts for each image query
+- default visibility: tqdm progress + runtime summary + matplotlib figure output
+- fault tolerance: invalid images / empty texts are skipped and reported in stderr
+
+You must provide the same training config family (`configs/`) to keep tokenizer and encoder settings consistent with checkpoint.
+
+```bash
+uv run python scripts/infer.py \
+	--checkpoint outputs/2026-03-01/15-21-19/best.pt \
+	--mode text2image \
+	--images data/Images/1000268201_693b08cb0e.jpg data/Images/1001773457_577c3a7d70.jpg \
+	--texts "a child climbing stairs" "a dog is running" \
+	--topk 2 \
+	--figure-dir inference_figures \
+	--config-path configs \
+	--config-name config
+```
+
+Stdout output remains JSON (top-k matches and scores) for compatibility.
+Stderr prints summary/errors, and figure files are written under `--figure-dir`.
+
+## 9. Current Default Config
 
 - `embed_dim=512`
 - `init_temperature=0.07`
